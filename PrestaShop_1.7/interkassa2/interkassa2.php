@@ -47,12 +47,11 @@ class Interkassa2 extends PaymentModule
         }
         $ikStatePending ->send_mail = 0;
         $ikStatePending ->template = "interkassa2";
-        $ikStatePending ->invoice = 0;
+        $ikStatePending ->invoice = 1;
         $ikStatePending ->color = "#007cf9";
         $ikStatePending ->unremovable = false;
         $ikStatePending ->logable = 0;
         $ikStatePending ->add();
-
 
         //При установке будет создан новый статус заказа для оплаты после pending
         $ikStatePaid = new OrderState();
@@ -60,15 +59,15 @@ class Interkassa2 extends PaymentModule
         {
             $ikStatePaid->name[$language['id_lang']] = 'Оплачено с помощью Интеркассы';
         }
-        $ikStatePaid ->send_mail = 0;
+        $ikStatePaid ->send_mail = 1;
         $ikStatePaid ->template = "interkassa2";
-        $ikStatePaid ->invoice = 0;
+        $ikStatePaid ->invoice = 1;
         $ikStatePaid ->color = "#27ae60";
         $ikStatePaid ->unremovable = false;
-        $ikStatePaid ->logable = 0;
+        $ikStatePaid ->logable = 1;
+        $ikStatePaid ->paid = 1;
         $ikStatePaid ->add();
 
-//        unlink(dirname(__FILE__) . '/../../cache/class_index.php');
         if (!parent::install()
             OR !$this->registerHook('paymentOptions')
             OR !$this->registerHook('paymentReturn')
@@ -89,7 +88,6 @@ class Interkassa2 extends PaymentModule
 
     public function uninstall()
     {
-//        unlink(dirname(__FILE__) . '/../../cache/class_index.php');
         return (parent::uninstall()
             AND Configuration::deleteByName('INTERKASSA2_CO_ID')
             AND Configuration::deleteByName('INTERKASSA2_S_KEY')
@@ -99,7 +97,6 @@ class Interkassa2 extends PaymentModule
             AND Configuration::deleteByName('INTERKASSA_PENDING')
             AND Configuration::deleteByName('INTERKASSA_PAID')
         );
-
     }
 
     public function getContent()
@@ -114,7 +111,6 @@ class Interkassa2 extends PaymentModule
             if ($ik_test_mode = Tools::getValue('ik_test_mode')) Configuration::updateValue('INTERKASSA2_TEST_MODE', $ik_test_mode);
 
         }
-
 
         $html = '<div style="width:550px">
            <p style="text-align:center;">
@@ -193,15 +189,6 @@ class Interkassa2 extends PaymentModule
         return $html;
     }
 
-    private function _displayLogoBlock($position)
-    {
-        return '<div style="text-align:center;"><a href="https://www.interkassa.com/" target="_blank" title="Безопасные платежи с Интеркасса"><img 
-        src="'
-        . __PS_BASE_URI__
-        . 'modules/interkassa2/interkassa.png" width="150" /></a></div>';
-    }
-
-
     //Возвращает новый способ оплаты
     public function hookPaymentOptions($params)
     {
@@ -211,9 +198,7 @@ class Interkassa2 extends PaymentModule
         $payment_options = [
             $this->getCardPaymentOption()
         ];
-
         return $payment_options;
-
     }
 
     public function getCardPaymentOption()

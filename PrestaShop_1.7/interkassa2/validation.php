@@ -52,17 +52,15 @@ if (count($_POST) && checkIP() && isset($_POST['ik_sign'])) {
         if ($request_sign == $sign) {
 
             $order = new Order($interkassa->currentOrder);
-
             if(isset($order->current_state)){
                 $history = new OrderHistory();
                 $history->id_order = (int)$order->id;
                 $history->changeIdOrderState(Configuration::get('INTERKASSA_PAID'), (int)($order->id));
             }else{
-                $interkassa->validateOrder($cart->id, Configuration::get('INTERKASSA_PAID'), $_POST['ik_am'], $interkassa->displayName, NULL,array
-                ('transaction_id'=>$_POST['ik_inv_id']));
+                $interkassa->validateOrder($cart->id, Configuration::get('INTERKASSA_PAID'), $_POST['ik_am'], $interkassa->displayName, NULL,array('transaction_id'=>$_POST['ik_inv_id']));
                 Tools::redirectLink(__PS_BASE_URI__.'order-confirmation.php?id_cart='.$cart->id.'&id_module='.$interkassa->id.'&id_order='.$interkassa->currentOrder.'&key='.$order->secure_key);
             }
-
+            $order = new Order($interkassa->currentOrder);
         } else {
             Tools::redirectLink(__PS_BASE_URI__ . 'order.php');
         }
