@@ -2,11 +2,11 @@
 
 /**
  * @name Интеркасса 2.0
- * @description Модуль разработан в компании GateOn предназначен для CMS Prestashop 1.6.1.8
+ * @description Модуль разработан в компании GateOn предназначен для CMS Prestashop 1.6.1.10
  * @author www.gateon.net
  * @email www@smartbyte.pro
- * @version 1.3
- * @update 1.11.2016
+ * @version 1.4
+ * @update 10.01.2017
  */
 
 class Interkassa extends PaymentModule
@@ -18,7 +18,7 @@ class Interkassa extends PaymentModule
     {
         $this->name = 'interkassa';
         $this->tab = 'payments_gateways';
-        $this->version = '1.3';
+        $this->version = '1.4';
         $this->author = 'GateOn';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -39,17 +39,7 @@ class Interkassa extends PaymentModule
         }
         parent::__construct();
 
-        if (!isset($this->ik_co_id)) {
-            $this->warning = $this->l('add ik_co_id');
-        }
 
-        if (!isset($this->s_key)) {
-            $this->warning = $this->l('add secret key');
-        }
-
-        if (!isset($this->t_key)) {
-            $this->warning = $this->l('add test key');
-        }
 
         $this->displayName = $this->l('Interkassa2');
         $this->description = $this->l('Pay with Interkassa');
@@ -58,7 +48,29 @@ class Interkassa extends PaymentModule
 
     public function install()
     {
-        if (!parent::install() OR !$this->registerHook('payment') OR !$this->registerHook('paymentReturn'))
+        //При установке будет создан новый статус заказа для оплаты после pending
+        $ikStatePaid = new OrderState();
+        foreach (Language::getLanguages() AS $language)
+        {
+            if (strtolower($language['iso_code']) == 'ru')
+                $ikStatePaid->name[$language['id_lang']] = 'Оплачено с помощью Интеркассы';
+            else
+                $ikStatePaid->name[$language['id_lang']] = 'Paid with Interkassa';
+        }
+        $ikStatePaid ->send_mail = 1;
+        $ikStatePaid ->template = "interkassa2";
+        $ikStatePaid ->invoice = 1;
+        $ikStatePaid ->color = "#27ae60";
+        $ikStatePaid ->unremovable = false;
+        $ikStatePaid ->logable = 1;
+        $ikStatePaid ->paid = 1;
+        $ikStatePaid ->add();
+
+        if (!parent::install()
+            OR !$this->registerHook('payment')
+            OR !$this->registerHook('paymentReturn')
+            OR !Configuration::updateValue('INTERKASSA_PAID',$ikStatePaid->id)
+        )
             return false;
         return true;
     }
@@ -69,6 +81,7 @@ class Interkassa extends PaymentModule
             OR !Configuration::deleteByName('ik_co_id')
             OR !Configuration::deleteByName('secret_key')
             OR !Configuration::deleteByName('test_key')
+            OR !Configuration::deleteByName('INTERKASSA_PAID')
             OR !parent::uninstall()
         )
             return false;
@@ -86,7 +99,7 @@ class Interkassa extends PaymentModule
                 $this->_postErrors[] = $this->l('add secret key');
             }
             if (empty($_POST['t_key'])){
-                $this->_postErrors[] = $this->l('add secret key');
+                $this->_postErrors[] = $this->l('add test key');
             }
         }
     }
@@ -116,14 +129,14 @@ class Interkassa extends PaymentModule
 			<legend><img src="../img/admin/contact.gif" />' . $this->l('Settings') . '</legend>
 			<div><label>' . $this->l('ik_shop_id:') . '</label>
 				<div class="margin-form"><input type="text" size="33" maxlength="36" name="ik_co_id" value="' . htmlentities(Tools::getValue('ik_co_id', $this->ik_co_id), ENT_COMPAT, 'UTF-8') . '" />
-					<p>Введите 36-и значный идентификатор </p></div>
+					<p>'.$this->l('No more than').'</p></div>
 					<div><label>' . $this->l('secret_key:') . '</label>
 						<div class="margin-form"><input type="text" size="33" maxlength="30" name="s_key" value="' . htmlentities(Tools::getValue
             ('s_key', $this->s_key), ENT_COMPAT, 'UTF-8') . '" />
-							<p>Введите секретный ключ максимум 33 символов </p>
+							<p>'.$this->l('No more than').'</p>
 						</div><label>' . $this->l('test_key:') . '</label>
 						<div class="margin-form"><input type="text" size="33" maxlength="30" name="t_key" value="' . htmlentities(Tools::getValue('t_key', $this->t_key), ENT_COMPAT, 'UTF-8') . '" />
-							<p>Введите тестовый ключ максимум 33 символов </p>
+							<p>'.$this->l('No more than').'</p>
 								<button type="submit" value="1" id="module_form_submit_btn" name="ik_submit" class="btn btn-default pull-right">
 							<i class="process-icon-save"></i> '. $this->l('Save') .'
 						</button>
@@ -131,10 +144,7 @@ class Interkassa extends PaymentModule
 					</form><br /><br />
 					<fieldset class="width3">
 						<legend><img src="../img/admin/warning.gif" />' . $this->l('Information') . '</legend>
-						<b style="color: red;">' . $this->l('how to connect Interkassa:') . '</b><br />
-						Зайдите на сайт <b>http://interkassa.com/</b> и пройдите процедуру &quot;Регистрации&quot;.После авторизации заполните поля "Название магазина", URl магазина и нажмите "Добавить (+)". <br />
-						<br />В настройках вашей кассы Интеркассы ,во вкладке <b>Интерфейс</b> разрешите переопределение в запросе во всех полях.</p>
-						<b style="color: red;">!!! Если Валюта отлична от USD то необхедимо указать "Курс валюты"</b></li>		
+						<b style="color: red;">' . $this->l('additional information') . '</b>
 					</fieldset>
 				</form>';
     }

@@ -1,11 +1,11 @@
 <?php
 /**
  * @name Интеркасса 2.0
- * @description Модуль разработан в компании GateOn предназначен для CMS Prestashop 1.6.1.8
+ * @description Модуль разработан в компании GateOn предназначен для CMS Prestashop 1.6.1.10
  * @author www.gateon.net
  * @email www@smartbyte.pro
- * @version 1.3
- * @update 1.11.2016
+ * @version 1.4
+ * @update 10.01.2017
  */
 
 include(dirname(__FILE__).'/../../config/config.inc.php');
@@ -52,7 +52,7 @@ if (count($_POST) && checkIP() && isset($_POST['ik_sign'])) {
 
         //Если подписи совпадают то осуществляется смена статуса заказа в админке
         if ($request_sign == $sign) {
-            $interkassa->validateOrder($cart->id, _PS_OS_PAYMENT_, $_POST['ik_am'], $interkassa->displayName, NULL, NULL);
+            $interkassa->validateOrder($cart->id, Configuration::get('INTERKASSA_PAID'), $_POST['ik_am'], $interkassa->displayName, NULL, array('transaction_id'=>$_POST['ik_inv_id']));
             $order = new Order($interkassa->currentOrder);
             Tools::redirectLink(__PS_BASE_URI__.'order-confirmation.php?id_cart='.$cart->id.'&id_module='.$interkassa->id.'&id_order='.$interkassa->currentOrder.'&key='.$order->secure_key);
 
@@ -106,7 +106,7 @@ function checkIP()
         'ip_end' => '151.80.190.104'
         );
 
-    if (!ip2long($_SERVER['REMOTE_ADDR']) >= ip2long($ip_stack['ip_begin']) && !ip2long($_SERVER['REMOTE_ADDR']) <= ip2long($ip_stack['ip_end'])) {
+    if (!(ip2long($_SERVER['REMOTE_ADDR']) >= ip2long($ip_stack['ip_begin']) && ip2long($_SERVER['REMOTE_ADDR']) <= ip2long($ip_stack['ip_end']))) {
         wrlog('REQUEST IP' . $_SERVER['REMOTE_ADDR'] . 'doesnt match');
         die('Ты мошенник! Пшел вон отсюда!');
     }

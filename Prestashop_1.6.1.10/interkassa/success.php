@@ -1,11 +1,11 @@
 <?php
 /**
  * @name Интеркасса 2.0
- * @description Модуль разработан в компании GateOn предназначен для CMS Prestashop 1.6.1.8
+ * @description Модуль разработан в компании GateOn предназначен для CMS Prestashop 1.6.1.10
  * @author www.gateon.net
  * @email www@smartbyte.pro
- * @version 1.3
- * @update 1.11.2016
+ * @version 1.4
+ * @update 10.01.2017
  */
 include_once(dirname(__FILE__).'/../../config/config.inc.php');
 include_once(dirname(__FILE__).'/interkassa.php');
