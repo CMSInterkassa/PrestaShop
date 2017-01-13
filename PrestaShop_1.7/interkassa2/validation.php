@@ -4,7 +4,8 @@
  * @description Модуль разработан в компании GateOn предназначен для CMS Prestashop 1.7.0.x
  * @author www.gateon.net
  * @email www@smartbyte.pro
- * @version 1.1
+ * @last_update 13.01.2017
+ * @version 1.2
  */
 
 include(dirname(__FILE__) . '/../../config/config.inc.php');
@@ -12,8 +13,8 @@ include(dirname(__FILE__) . '/interkassa2.php');
 $interkassa = new Interkassa2();
 
 if (count($_POST) && checkIP() && isset($_POST['ik_sign'])) {
-    wrlog('ip ok');
-    wrlog($_POST);
+//    wrlog('ip ok');
+//    wrlog($_POST);
     $cart = new Cart((int)$_POST['ik_pm_no']);
 
     $currency = new Currency((int)$cart->id_currency);
@@ -48,7 +49,7 @@ if (count($_POST) && checkIP() && isset($_POST['ik_sign'])) {
         $str = implode(':', $request);
         $sign = base64_encode(md5($str, true));
 
-        wrlog($sign . '/' . $request_sign);
+        //wrlog($sign . '/' . $request_sign);
         if ($request_sign == $sign) {
 
             $order = new Order($interkassa->currentOrder);
@@ -103,7 +104,7 @@ function checkIP()
         'ip_end' => '151.80.190.104'
     );
 
-    if (!ip2long($_SERVER['REMOTE_ADDR']) >= ip2long($ip_stack['ip_begin']) && !ip2long($_SERVER['REMOTE_ADDR']) <= ip2long($ip_stack['ip_end'])) {
+    if (!(ip2long($_SERVER['REMOTE_ADDR']) >= ip2long($ip_stack['ip_begin']) && ip2long($_SERVER['REMOTE_ADDR']) <= ip2long($ip_stack['ip_end']))) {
         wrlog('REQUEST IP' . $_SERVER['REMOTE_ADDR'] . 'doesnt match');
         die('Ты мошенник! Пшел вон отсюда!');
     }
