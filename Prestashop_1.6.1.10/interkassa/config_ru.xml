@@ -2,7 +2,7 @@
 <module>
 	<name>interkassa</name>
 	<displayName><![CDATA[Интеркасса 2]]></displayName>
-	<version><![CDATA[1.4]]></version>
+	<version><![CDATA[1.5]]></version>
 	<description><![CDATA[Позволяет проводить оплату с помощью Интеркассы]]></description>
 	<author><![CDATA[GateOn]]></author>
 	<tab><![CDATA[payments_gateways]]></tab>
