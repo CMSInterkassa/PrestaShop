@@ -17,7 +17,7 @@ $_MODULE['<{interkassa}prestashop>interkassa_f4f70727dc34561dfde1a3c529b6205c'] 
 $_MODULE['<{interkassa}prestashop>interkassa_791832642312c9e8c1255fab069f29bb'] = 'Добавьте Ваш идентификатор магазина (ik_co_id):';
 $_MODULE['<{interkassa}prestashop>interkassa_68699d3177dcc8256bac5a0460f825bf'] = 'не больше 36 символов';
 $_MODULE['<{interkassa}prestashop>interkassa_46036b2272fe91a3fdc1cd73fc42b0bb'] = 'Добавьте Ваш секретный ключ (secret_key):';
-$_MODULE['<{interkassa}prestashop>interkassa_467fb5bacea05971b0be77d91453bed5'] = 'Добавьте Ваш тестовый ключ (secret_key):';
+$_MODULE['<{interkassa}prestashop>interkassa_467fb5bacea05971b0be77d91453bed5'] = 'Добавьте Ваш тестовый ключ (test_key):';
 $_MODULE['<{interkassa}prestashop>interkassa_1482a593c46dbeedfbfd907f85236d37'] = 'Используйте новое API Интеркассы';
 $_MODULE['<{interkassa}prestashop>interkassa_19da52f1b2c8e958b84cb8780dd6af0b'] = 'Настройки API находятся в настройках вашего аккаунта Интеркассы в разделе API';
 $_MODULE['<{interkassa}prestashop>interkassa_efe38a290dde3164eb325ce19d37cfa7'] = 'При использовании API вместо перехода на платежный шлюз пользователю будет предложено выбрать платежную систему и валюту.';

@@ -6,7 +6,7 @@
  * @author www.gateon.net
  * @email www@smartbyte.pro
  * @version 1.5
- * @update 28.03.2017
+ * @update 25.05.2017
  */
 
 class Interkassa extends PaymentModule
@@ -144,28 +144,28 @@ class Interkassa extends PaymentModule
     private function _displayInterkassa()
     {
         $this->_html .= '
-		<img src="../modules/interkassa/logo_settings.png" style="float:left; margin-right:15px;" /><br><br>
-		<h2><b>' . $this->l('Pay with Interkassa') . '</b></h2>';
+        <img src="../modules/interkassa/logo_settings.png" style="float:left; margin-right:15px;" /><br><br>
+        <h2><b>' . $this->l('Pay with Interkassa') . '</b></h2>';
     }
 
     private function _displayForm()
     {
         $this->_html .=
             '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" class="defaultForm form-horizontal bootstrap">
-		<fieldset>
-			<legend><img src="../img/admin/contact.gif" />' . $this->l('Settings') . '</legend>
-			<div><label>' . $this->l('ik_shop_id:') . '</label>
-				<div class="margin-form"><input type="text" size="33" maxlength="36" name="ik_co_id" value="' . htmlentities(Tools::getValue('ik_co_id', $this->ik_co_id), ENT_COMPAT, 'UTF-8') . '" />
-					<p>'.$this->l('No more than').'</p></div>
-					<div><label>' . $this->l('secret_key:') . '</label>
-						<div class="margin-form"><input type="text" size="33" maxlength="30" name="s_key" value="' . htmlentities(Tools::getValue
+        <fieldset>
+            <legend><img src="../img/admin/contact.gif" />' . $this->l('Settings') . '</legend>
+            <div><label>' . $this->l('ik_shop_id:') . '</label>
+                <div class="margin-form"><input type="text" size="33" maxlength="36" name="ik_co_id" value="' . htmlentities(Tools::getValue('ik_co_id', $this->ik_co_id), ENT_COMPAT, 'UTF-8') . '" />
+                    <p>'.$this->l('No more than').'</p></div>
+                    <div><label>' . $this->l('secret_key:') . '</label>
+                        <div class="margin-form"><input type="text" size="33" maxlength="30" name="s_key" value="' . htmlentities(Tools::getValue
             ('s_key', $this->s_key), ENT_COMPAT, 'UTF-8') . '" />
-							<p>'.$this->l('No more than').'</p>
-						</div><label>' . $this->l('test_key:') . '</label>
-						<div class="margin-form"><input type="text" size="33" maxlength="30" name="t_key" value="' . htmlentities(Tools::getValue('t_key', $this->t_key), ENT_COMPAT, 'UTF-8') . '" />
-							<p>'.$this->l('No more than').'</p></div>
-					<div class="margin-form">		
-				<h2><strong>' . $this->l('Use new Interkassa API'). '</strong></h2>
+                            <p>'.$this->l('No more than').'</p>
+                        </div><label>' . $this->l('test_key:') . '</label>
+                        <div class="margin-form"><input type="text" size="33" maxlength="30" name="t_key" value="' . htmlentities(Tools::getValue('t_key', $this->t_key), ENT_COMPAT, 'UTF-8') . '" />
+                            <p>'.$this->l('No more than').'</p></div>
+                    <div class="margin-form">       
+                <h2><strong>' . $this->l('Use new Interkassa API'). '</strong></h2>
                <h3>' . $this->l('API settings locate in your Interkassa account settings in API section'). '</h3>
                <h3>' . $this->l('To use Interkassa API select API mode. On the payment methods selection page you will see button') . '
             </h3>
@@ -183,7 +183,6 @@ class Interkassa extends PaymentModule
             . '</option>
               </select>
             </div>
-               
               <label>
               ' . $this->l('Interkassa API Id') . '
             </label>
@@ -196,17 +195,16 @@ class Interkassa extends PaymentModule
             <div class="margin-form">
               <input type="text"' . (htmlentities(Tools::getValue('api_key', $this->api_key)) == 'on' ? ' required="required"' : '') . '  name="api_key" value="' . htmlentities(Tools::getValue('api_key', $this->api_key)). '"  />
             </div> 
-
-								<button type="submit" value="1" id="module_form_submit_btn" name="ik_submit" class="btn btn-default pull-right">
-							<i class="process-icon-save"></i> '. $this->l('Save') .'
-						</button>
-						</fieldset>
-					</form><br /><br />
-					<fieldset class="width3">
-						<legend><img src="../img/admin/warning.gif" />' . $this->l('Information') . '</legend>
-						<b style="color: red;">' . $this->l('additional information') . '</b>
-					</fieldset>
-				</form>';
+                                <button type="submit" value="1" id="module_form_submit_btn" name="ik_submit" class="btn btn-default pull-right">
+                            <i class="process-icon-save"></i> '. $this->l('Save') .'
+                        </button>
+                        </fieldset>
+                    </form><br /><br />
+                    <fieldset class="width3">
+                        <legend><img src="../img/admin/warning.gif" />' . $this->l('Information') . '</legend>
+                        <b style="color: red;">' . $this->l('additional information') . '</b>
+                    </fieldset>
+                </form>';
     }
 
 
@@ -253,39 +251,30 @@ class Interkassa extends PaymentModule
         $ik_desc = '#' . $ik_pm_no;
         $secret_key = Configuration::get('secret_key');
 
-        $arg = [
+        $protocol = isset($_SERVER["HTTPS"]) ? 'https://' : 'http://';
+
+        $parameters = array(
             'ik_cur' => $cur,
             'ik_co_id' => $ik_co_id,
             'ik_pm_no' => $ik_pm_no,
             'ik_am' => $ik_am,
             'ik_desc' => $ik_desc,
-            'ik_ia_u' => 'http://' . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'modules/interkassa/validation.php',
-            'ik_suc_u' => 'http://' . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'modules/interkassa/success.php',
-            'ik_fal_u' => 'http://' . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'modules/interkassa/fail.php',
-            'ik_pnd_u' => 'http://' . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'modules/interkassa/success.php',
-        ];
+            'ik_ia_u' => $protocol . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'modules/interkassa/validation.php',
+            'ik_suc_u' => $protocol . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'modules/interkassa/success.php',
+            'ik_fal_u' => $protocol . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'modules/interkassa/fail.php',
+            'ik_pnd_u' => $protocol . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'modules/interkassa/success.php',
+        );
 
         $signature = self::IkSignFormation($arg);
 
-        $parameters = array(
-            'ik_co_id' => $ik_co_id,
-            'ik_cur' => $cur,
-            'ik_am' => $ik_am,
-            'ik_desc' => $ik_desc,
-            'ik_pm_no' => $ik_pm_no,
-            'ik_ia_u' => 'http://' . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'modules/interkassa/validation.php',
-            'ik_suc_u' => 'http://' . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'modules/interkassa/success.php',
-            'ik_fal_u' => 'http://' . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'modules/interkassa/fail.php',
-            'ik_pnd_u' => 'http://' . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'modules/interkassa/success.php',
-            'img_path' => $this->_path,
-            'ik_sign' => $signature,
-        );
+        $parameters['ik_sign'] = $signature;
 
         if (Configuration::get('api_mode') == 'on'){
             $api_id = Configuration::get('api_id');
             $api_key = Configuration::get('api_key');
             $parameters['payment_systems'] = $this->getIkPaymentSystems($ik_co_id, $api_id, $api_key);
             $parameters['payment_systems_path'] = $this->_path . 'paysystems/';
+            $parameters['img_path'] = $this->_path;
             $parameters['ajax_url'] = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/interkassa/ajax.php';
             $parameters['api_mode'] = true;
         }else{
@@ -322,14 +311,11 @@ class Interkassa extends PaymentModule
                         $payment_systems[$payment_system]['title'] = ucfirst($name->v);
                     }
                     $payment_systems[$payment_system]['name'][$name->l] = $name->v;
-
                 }
             }
             $payment_systems[$payment_system]['currency'][strtoupper($info->curAls)] = $info->als;
-
         }
         }else{
-
             $payment_systems['error'] ='API connection error! '.$json_data->message;
         }
         return $payment_systems;
