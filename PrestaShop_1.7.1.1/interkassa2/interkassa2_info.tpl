@@ -4,7 +4,7 @@
 
 {if $api_mode == 'on'}
 <!-- Trigger the modal with a button -->
-<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#InterkassaModal">{l s='Select Payment System' mod='interkassa2'}</button>
+<button type="button" id="modalopenbut" class="btn btn-info btn-lg" data-toggle="modal" data-target="#InterkassaModal">{l s='Select Payment System' mod='interkassa2'}</button>
 
 <!-- Modal -->
 <div id="InterkassaModal" class="modal fade" role="dialog">
@@ -13,9 +13,9 @@
             <div class="container">
                 <div class="row">
                     <h1>
-                        1.{l s='Select Payment System' mod='interkassa2'}<br>
-                        2.{l s='Specify currency' mod='interkassa2'}<br>
-                        3.{l s='Press Pay' mod='interkassa2'}
+                        0.{l s='Select Payment System' mod='interkassa2'}<br>
+                        1.{l s='Specify currency' mod='interkassa2'}<br>
+                        2.{l s='Press Pay' mod='interkassa2'}
                     </h1>
                     {foreach $payment_systems as $ps => $info}
                         <div class="col-md-3 text-center payment_system">
@@ -50,6 +50,7 @@
                             </div>
                         </div>
                     {/foreach }
+                    {debug}
                 </div>
             </div>
         </div>
@@ -57,16 +58,83 @@
 </div>
 
 <script type="text/javascript">
+
+     var curtrigger = false;
+    
+    function paystart(string){
+        if($(".checkbox-checked").parent().parent().children()[0].checked)
+        {
+            data_array = JSON.parse(string);
+            console.log(data_array);
+            var data_send_form=[];
+            var data_send_inputs=[];
+            data_send_form['url'] = data_array['resultData']['paymentForm']['action'];
+            data_send_form['method'] = data_array['resultData']['paymentForm']['method'];
+            for(var i in data_array['resultData']['paymentForm']['parameters']){
+                data_send_inputs[i]=data_array['resultData']['paymentForm']['parameters'][i];
+            }
+        //console.log(data_send_inputs);
+            $('body').append('<form method="'+data_send_form['method']+'" id="tempform" action="'+data_send_form['url']+'"></form>');
+            for(var i in data_send_inputs){
+                console.log(data_send_inputs[i]);
+                $("#tempform").append('<input type="text" name="'+i+'" value="'+data_send_inputs[i]+'" />');
+            }
+            $('#tempform').submit();
+        }
+        else
+        {
+            curtrigger=false;
+            alert("Состояние чек-бокса:"+$(".checkbox-checked").parent().parent().children()[0].checked);
+            $('input[name =  "ik_act"]').remove();
+            $('input[name =  "ik_int"]').remove();
+            $('input[name =  "ik_pw_via"]').remove();
+            $('a[data-toggle]').removeClass('active').addClass('notActive');
+        }
+    }
+
     window.onload = function() {
-        var curtrigger = false;
+
+        //Удалить при возможности
+        var check=$(".checkbox-checked").parent().parent().children();
+        $("input:checkbox").bind("change click", function () {
+            //alert(check[0].checked);
+            check[0].checked = true;
+        });
+
 
         $('.ik-payment-confirmation').click(function () {
             if (!curtrigger) {
                 alert('Вы не выбрали валюту');
                 return;
             }
-            $('#conditions-to-approve input').click();
-            $('#payment-confirmation button').click();
+            var form = $('[action = "https://sci.interkassa.com/"]');
+            form.append(
+                        $('<input>', {
+                            type: 'hidden',
+                            name: 'ik_act',
+                            val: 'process'
+                        }));
+            form.append(
+                        $('<input>', {
+                            type: 'hidden',
+                            name: 'ik_int',
+                            val: 'json'
+                        }));
+            var msg = form.serialize();
+            $.ajax({
+                type: 'POST',
+                url: '{$ajax_url2}',
+                data: msg,
+                success: function(data_unser) {
+                    //console.log(data_unser);
+                    paystart(data_unser);
+                },
+                error:  function(xhr, str){
+                    alert('Возникла ошибка: ' + xhr.responseCode);
+                }
+            });
+            //$('#conditions-to-approve input').click();
+            //$('#payment-confirmation button').click();
 
         });
 
@@ -89,7 +157,7 @@
             }
             $.post('{$ajax_url}', form.serialize())
                     .done(function (data) {
-                        console.log(data);
+                        //console.log(data);
                         if ($('input[name =  "ik_sign"]').length > 0) {
                             $('input[name =  "ik_sign"]').val(data);
                         }
@@ -177,4 +245,5 @@
         color: #3276b1;
         background-color: #fff;
     }
+
 </style>
