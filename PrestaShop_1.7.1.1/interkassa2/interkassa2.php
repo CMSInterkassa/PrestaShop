@@ -4,7 +4,7 @@
  * @description Модуль разработан в компании GateOn предназначен для CMS Prestashop 1.7.0.x
  * @author www.gateon.net
  * @email www@smartbyte.pro
- * @last_update 13.01.2017
+ * @last_update 31.08.2017
  * @version 1.2
  */
 
@@ -247,6 +247,10 @@ class Interkassa2 extends PaymentModule
     {
         global $cookie, $cart;
 
+        if(Configuration::get('INTERKASSA2_API_MODE') == 'on' && Configuration::get('INTERKASSA2_TEST_MODE') != 'test')
+            $url='javascript:test()';
+        else
+            $url='https://sci.interkassa.com/';
 
         $total = $cart->getOrderTotal();
         $currency = $this->getCurrency((int)$cart->id_currency);
@@ -327,6 +331,11 @@ class Interkassa2 extends PaymentModule
                 'type' => 'hidden',
                 'value' => $data['fields']['ik_sign'],
             ],
+            'ik_x_email' => ['name' => 'ik_x_email',
+                'type' => 'hidden',
+                'value' => $cookie->email,
+            ],
+             
 
         ];
         if (Configuration::get('INTERKASSA2_TEST_MODE') == 'test') {
@@ -341,23 +350,23 @@ class Interkassa2 extends PaymentModule
                 Configuration::get('INTERKASSA2_API_KEY'));
         }
 
-
         $externalOption = new PaymentOption();
         $externalOption->setCallToActionText($this->l(Configuration::get('INTERKASSA2_PAY_TEXT')))
-            ->setAction('https://sci.interkassa.com/')
+            ->setAction($url)
             ->setInputs($form)
             ->setAdditionalInformation($this->context->smarty->assign(array(
                 'api_mode'=>Configuration::get('INTERKASSA2_API_MODE'),
                 'payment_systems'=>$payment_systems,
+                'url'=>$url,
                 'ajax_url'=> Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/interkassa2/ajax.php',
+                'ajax_url2'=> Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/interkassa2/ajax2.php',
                 'ik_dir'=> Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/interkassa2/',
                 'shop_cur'=>$currency->iso_code
             ))->fetch('module:interkassa2/interkassa2_info.tpl'))
             ->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/payment.png'));
-
         return $externalOption;
     }
-
+    
     public function hookPaymentReturn($params)
     {
         if(!empty($_POST)){
