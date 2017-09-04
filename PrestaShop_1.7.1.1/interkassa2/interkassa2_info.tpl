@@ -131,7 +131,7 @@ $("#modalopenbut").click();
                 for(var i in data_array['resultData']['paymentForm']['parameters']){
                     data_send_inputs[i]=data_array['resultData']['paymentForm']['parameters'][i];
                 }
-                $('#tempdiv').append('HALLLLOOOOOOOOO<form method="'+data_send_form['method']+'" id="tempform2" action="'+data_send_form['url']+'"></form>');
+                $('#tempdiv').append('<form method="'+data_send_form['method']+'" id="tempform2" action="'+data_send_form['url']+'"></form>');
                 for(var i in data_send_inputs){
                     $("#tempform2").append('<input type="hidden" name="'+i+'" value="'+data_send_inputs[i]+'" />');
                 }
