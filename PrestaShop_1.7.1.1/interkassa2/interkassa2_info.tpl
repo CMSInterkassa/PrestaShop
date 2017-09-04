@@ -58,7 +58,8 @@ $("#modalopenbut").click();
     
     function paystart(string){
         data_array = JSON.parse(string);
-        console.log(data_array);var form = $('[action = "{$url}"]');
+        //console.log(data_array);
+        var form = $('[action = "{$url}"]');
         if(data_array['resultCode']!=0){
             //alert(data_array['resultMsg']);
             form[0].action="https://sci.interkassa.com/";
@@ -96,13 +97,13 @@ $("#modalopenbut").click();
     function test2(){
     var form2=$('#internalForm');
     var msg2 = form2.serialize();
-    console.log(msg2);
+    //console.log(msg2);
         $.ajax({
             type: 'POST',
             url: '{$ajax_url2}',
             data: msg2,
             success: function(data_unser) {
-                console.log(data_unser);
+               // console.log(data_unser);
                 paystart2(data_unser);
             },
             error:  function(xhr, str){
@@ -113,11 +114,14 @@ $("#modalopenbut").click();
     
     function paystart2(string){
         data_array = JSON.parse(string);
-        console.log(data_array);
+        //console.log(data_array);
         var form2=$('#internalForm');
         if(data_array['resultCode']!=0){
-            //alert(data_array['resultMsg']);
+           // alert(data_array['resultMsg']);
             form2[0].action="https://sci.interkassa.com/";
+            $('input[name =  "ik_act"]').remove();
+            $('input[name =  "ik_int"]').remove();
+            $('input[name =  "sci[ik_int]"]').remove();
             form2.submit();
         }
         else{
@@ -135,7 +139,7 @@ $("#modalopenbut").click();
                 for(var i in data_send_inputs){
                     $("#tempform2").append('<input type="hidden" name="'+i+'" value="'+data_send_inputs[i]+'" />');
                 }
-                $('#tempform2').submit();
+                //$('#tempform2').submit();
             }
             else{
                 $('.col-md-8').append('<div id="tempdiv">'+data_array['resultData']['internalForm']+'</div>');
@@ -166,7 +170,7 @@ $("#modalopenbut").click();
                                 val: 'json'
                             }));
                 var msg = form.serialize();
-                console.log(msg);
+                //console.log(msg);
                 $.ajax({
                     type: 'POST',
                     url: '{$ajax_url2}',
@@ -305,5 +309,8 @@ $("#modalopenbut").click();
     }
     .tempclass{
     font-size:10px;
+    }
+    #tempdiv label{
+    text-align:left;
     }
 </style>
