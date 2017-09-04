@@ -124,7 +124,6 @@ $("#modalopenbut").click();
             $('#tempdiv').html('');
             if(data_array['resultData']['paymentForm']!=undefined)
             {
-                alert("l");
                 var data_send_form=[];
                 var data_send_inputs=[];
                 data_send_form['url'] = data_array['resultData']['paymentForm']['action'];
