@@ -51,6 +51,17 @@
 
 <script type="text/javascript">
 
+function temp(){
+    if( $('input[name = "ik_pw_via"]').val()=="euroset_wp_merchantTn_rub" || $('input[name = "ik_pw_via"]').val()=="svyaznoy_wp_merchantTn_rub" )
+    {
+    	var form = $('[action = "{$url}"]');
+        form[0].action="https://sci.interkassa.com/";
+        $('input[name =  "ik_act"]').remove();
+        $('input[name =  "ik_int"]').remove();
+        form.submit();
+    }
+}
+
 function test(){
 $("#modalopenbut").click();
 }
@@ -58,7 +69,7 @@ $("#modalopenbut").click();
     
     function paystart(string){
         data_array = JSON.parse(string);
-        //console.log(data_array);
+        console.log(data_array);
         var form = $('[action = "{$url}"]');
         if(data_array['resultCode']!=0){
             //alert(data_array['resultMsg']);
@@ -68,6 +79,7 @@ $("#modalopenbut").click();
                 form.submit();
         }
         else{
+        	temp();
             if(data_array['resultData']['paymentForm']!=undefined)
             {
                 var data_send_form=[];
@@ -114,7 +126,7 @@ $("#modalopenbut").click();
     
     function paystart2(string){
         data_array = JSON.parse(string);
-        //console.log(data_array);
+        console.log(data_array);
         var form2=$('#internalForm');
         if(data_array['resultCode']!=0){
            // alert(data_array['resultMsg']);
@@ -139,7 +151,7 @@ $("#modalopenbut").click();
                 for(var i in data_send_inputs){
                     $("#tempform2").append('<input type="hidden" name="'+i+'" value="'+data_send_inputs[i]+'" />');
                 }
-                //$('#tempform2').submit();
+                $('#tempform2').submit();
             }
             else{
                 $('.col-md-8').append('<div id="tempdiv">'+data_array['resultData']['internalForm']+'</div>');
