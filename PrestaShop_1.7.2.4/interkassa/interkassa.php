@@ -1,11 +1,11 @@
 <?php
 /**
- * @name Интеркасса 2.0
- * @description Модуль разработан в компании GateOn предназначен для CMS Prestashop 1.7.0.x
+ * @name Интеркасса
+ * @description Модуль разработан в компании GateOn предназначен для CMS Prestashop 1.7.2.4
  * @author tim frio
  * @email web5@marat.ua
- * @last_update 13.01.2017
- * @version 1.2
+ * @last_update 19.12.2017
+ * @version 1.1
  */
 
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
@@ -20,7 +20,7 @@ class Interkassa extends PaymentModule
     {
       $this->name = 'interkassa';
       $this->tab = 'payments_gateways';
-      $this->version = '171214';
+      $this->version = '171219';
       $this->ps_versions_compliancy = array('min' => '1.7.2.4', 'max' => _PS_VERSION_);
       $this->currencies = true;
       $this->currencies_mode = 'radio';
@@ -119,7 +119,7 @@ class Interkassa extends PaymentModule
         $html = '<div style="width:550px">
            <p style="text-align:center;">
                <a href="https://www.interkassa.com/" target="_blank">
-                <img  src="' . __PS_BASE_URI__ . 'modules/interkassa2/interkassa.png" alt="Interkassa2" border="0" width="300px" align="center " />
+                <img  src="' . __PS_BASE_URI__ . 'modules/interkassa/interkassa.png" alt="Interkassa2" border="0" width="300px" align="center " />
                </a>
             </p>
         <form action="' . $_SERVER['REQUEST_URI'] . '" method="post">
@@ -166,14 +166,14 @@ class Interkassa extends PaymentModule
             ' . $this->l('The text of the form of payment') . '
             </label>
              <div class="margin-form" style="margin-top:5px">
-               <input type="text" name="interkassa2_pay_text" value="' . Configuration::get('INTERKASSA_PAY_TEXT') . '">
+               <input type="text" name="interkassa_pay_text" value="' . Configuration::get('INTERKASSA_PAY_TEXT') . '">
              </div><br>
              <label>
              ' . $this->l('Preview') . '
              </label>
                   <div align="center">' . Configuration::get('INTERKASSA_PAY_TEXT') . '&nbsp&nbsp
                   <img width="100px" alt="Pay via Interkassa" title="Pay via Interkassa" src="' . __PS_BASE_URI__
-            . 'modules/interkassa2/interkassa.png">
+            . 'modules/interkassa/interkassa.png">
                     </div><br>
                <h2>' . $this->l('You are able to use convenient choice of payment system on the payment methods selection page'). '</h2>
                <p>' . $this->l('API settings locate in your Interkassa account settings in API section'). '</p>
@@ -184,7 +184,7 @@ class Interkassa extends PaymentModule
             </label>
             <div class="margin-form" style="width:110px;">
               <select name="api_mode">
-                <option value="on"' . (Configuration::get('INTERKASSA_API_MODE') == 'on' ? ' selected="selected"' : '') . '>' . $this->l('ON')
+                <option value="on"' . (Configuration::get('INTERKASSA_API_MODE') == 'on'||true ? ' selected="selected"' : '') . '>' . $this->l('ON')
             . '&nbsp;&nbsp;
                 </option>
                 <option value="off"' . (Configuration::get('INTERKASSA_API_MODE') == 'off' ? ' selected="selected"' : '') . '>' . $this->l('OFF')
@@ -210,7 +210,7 @@ class Interkassa extends PaymentModule
             . trim(Tools::getValue('INTERKASSA_API_KEY', Configuration::get('INTERKASSA_API_KEY'))) .
             '" />
             </div>
-            <div style="float:right;"><input type="submit" name="submitInterkassa2" class="button btn btn-default pull-right" value="' . $this->l('Save') . '" /></div><div
+            <div style="float:right;"><input type="submit" name="submitInterkassa" class="button btn btn-default pull-right" value="' . $this->l('Save') . '" /></div><div
             class="clear"></div>
           </fieldset>
         </form>
@@ -342,14 +342,24 @@ class Interkassa extends PaymentModule
             ->setAction('https://sci.interkassa.com/')
             ->setInputs($form)
             ->setAdditionalInformation($this->context->smarty->assign(array(
+              'ik_co_id'=>Configuration::get('INTERKASSA_CO_ID'),
+              'ik_pm_no'=>$cart->id,
+              'ik_desc'=>'#'.$cart->id,
+              'ik_am'=>number_format(sprintf("%01.2f", $total), 2, '.', ''),
+              'ik_cur'=>$currency->iso_code,
+              'ik_suc_u'=>Tools::getHttpHost(true).__PS_BASE_URI__.'modules/interkassa/validation.php',
+              'ik_fal_u'=>Tools::getHttpHost(true).__PS_BASE_URI__.'modules/interkassa/fail.php',
+              'ik_pnd_u'=>Tools::getHttpHost(true).__PS_BASE_URI__.'modules/interkassa/fail.php',
+              'ik_ia_u'=>Tools::getHttpHost(true).__PS_BASE_URI__.'modules/interkassa/validation.php',
+              'ik_sign'=>$signature,
                 'api_mode'=>Configuration::get('INTERKASSA_API_MODE'),
                 'mode'=>Configuration::get('INTERKASSA_TEST_MODE'),
                 'payment_systems'=>$payment_systems,
                 'ajax_url'=> Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/interkassa/ajax.php',
                 'ik_dir'=> Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/interkassa/',
                 'shop_cur'=>$currency->iso_code
-            ))->fetch('module:interkassa/interkassa2_info.tpl'));
-            #->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/payment.png'));
+            ))->fetch('module:interkassa/interkassa2_info.tpl'))
+            ->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/payment.png'));
         return $externalOption;
     }
 

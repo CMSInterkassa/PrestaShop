@@ -1,16 +1,14 @@
-<section>
-    <p>{l s='457' mod='interkassa'}</p>
+<section id="ik_backup" data-ik_co_id="{$ik_co_id}" data-ik_pm_no="{$ik_pm_no}" data-ik_desc="{$ik_desc}" data-ik_am="{$ik_am}" data-ik_cur="{$ik_cur}" data-ik_suc_u="{$ik_suc_u}" data-ik_fal_u="{$ik_fal_u}" data-ik_pnd_u="{$ik_pnd_u}" data-ik_ia_u="{$ik_ia_u}" data-ik_sign="{$ik_sign}">
+    <p>{l s='Interkassa' mod='interkassa'}</p>
 </section>
 {if $api_mode == 'on'}
-<!-- Trigger the modal with a button -->
-<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#InterkassaModal">{l s='Select Payment System' mod='interkassa2'}</button>
+<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#InterkassaModal">{l s='Select Payment System' mod='interkassa'}</button>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="{$ik_dir}assets/ik.js"></script>
 <script>
-selpayIK.req_uri='{$ajax_url}';
+  selpayIK.req_uri='{$ajax_url}';
 </script>
 <link href="{$ik_dir}assets/ik.css" rel="stylesheet">
-<!-- Modal -->
 <div id="InterkassaModal" class="modal fade" role="dialog">
     <div class="modal-dialog modal-lg">
         <div class="modal-content" id="plans">
@@ -47,19 +45,22 @@ selpayIK.req_uri='{$ajax_url}';
                                 </div>
                                 <div class="panel-footer">
                                     <a class="btn btn-lg btn-block btn-success ik-payment-confirmation" data-title="{$ps}" href="#">{l
-                                        s='Pay via' mod='interkassa2'}
+                                        s='Pay via' mod='interkassa'}
                                         <br>
                                         <strong>{$info['title']}</strong>
                                     </a>
                                 </div>
                             </div>
                         </div>
-                    {/if}{/foreach }
+                    {/if}{/foreach}
                   </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
+{/if}
+{if $api_mode != 'on'}
+<script src="{$ik_dir}assets/ik_no_api.js"></script>
+<button type="button" class="btn btn-info btn-lg" onclick="gogogo()">Перейти к оплате</button>
 {/if}

@@ -1,28 +1,37 @@
 var selpayIK = {
   actForm : 'https://sci.interkassa.com/',
+  Form : 'form[action="https://sci.interkassa.com/"]',
+  serialize : function()
+  {
+    var ds=document.querySelector('#ik_backup').dataset;
+    return document.querySelector(selpayIK.Form)?jQuery(selpayIK.Form).serialize():('ik_co_id='+encodeURIComponent(ds.ik_co_id)+'&ik_pm_no='+encodeURIComponent(ds.ik_pm_no)+'&ik_desc='+encodeURIComponent(ds.ik_desc)+'&ik_am='+encodeURIComponent(ds.ik_am)+'&ik_cur='+encodeURIComponent(ds.ik_cur)+'&ik_suc_u='+encodeURIComponent(ds.ik_suc_u)+'&ik_fal_u='+encodeURIComponent(ds.ik_fal_u)+'&ik_pnd_u='+encodeURIComponent(ds.ik_pnd_u)+'&ik_ia_u='+encodeURIComponent(ds.ik_ia_u)+'&ik_sign='+encodeURIComponent(ds.ik_sign)+(ds.ik_pw_via?'&ik_pw_via='+encodeURIComponent(ds.ik_pw_via):'')+(ds.ik_act?'&ik_act='+encodeURIComponent(ds.ik_act):'')+(ds.ik_int?'&ik_pw_via='+encodeURIComponent(ds.ik_int):''))},
+  backup : {
+    a:function(k,v){if(document.querySelector(selpayIK.Form)){if(document.querySelector('input[name="'+k+'"]'))document.querySelector('input[name="'+k+'"]').value=v;else{var el=document.createElement('input');el.type='hidden',el.name=k,el.value=v;document.querySelector(selpayIK.Form).appendChild(el);}}document.querySelector('#ik_backup').dataset[k]=v;},
+    b:function(data){data.forEach(function(v){this.d(v)})},
+    c:function(data){data.forEach(function(v){this.a(v[0],v[1])})},
+    d:function(k){if(document.querySelector('input[name="'+k+'"]')) jQuery('input[name="'+k+'"]').remove();delete document.querySelector('#ik_backup').dataset[k];},
+    f:function(){var form=document.createElement('form');form.action=selpayIK.actForm;var ds=document.querySelector('#ik_backup').dataset;Array('ik_co_id','ik_pm_no','ik_desc','ik_am','ik_cur','ik_suc_u','ik_fal_u','ik_pnd_u','ik_ia_u','ik_sign','ik_pw_via','ik_act','ik_int').forEach(function(k){if(typeof ds[k]!='undefined'){var el=document.createElement('input');el.type='hidden',el.name=k,el.value=ds[k];form.appendChild(el);}});document.body.appendChild(form).submit()}
+  },
   selPaysys : function()
 	{
     if(jQuery('button.sel-ps-ik').length > 0)
       jQuery('.sel-ps-ik').click()
     else
 		{
-      var form = jQuery('form[action="https://sci.interkassa.com/"]')
+      var form = jQuery(selpayIK.Form)
       form[0].action = selpayIK.actForm
       setTimeout(function(){form[0].submit()},200)
     }
   },
   paystart : function (data) {
     data_array = (this.IsJsonString(data))? JSON.parse(data) : data
-    var form = jQuery('form[name="vm_interkassa_form"]');
+    var form = jQuery(selpayIK.Form);
     if (data_array['resultCode'] != 0) {
-      jQuery('input[name="ik_act"]').remove();
-      jQuery('input[name="ik_int"]').remove();
-      jQuery('form[action="https://sci.interkassa.com/"]').attr('action', selpayIK.actForm).submit()
+      selpayIK.backup.b(['ik_act','ik_int']);
+      selpayIK.backup.f()
     }
     else {
-      console.log('paystart else')
       if (data_array['resultData']['paymentForm'] != undefined) {
-        console.log('paystart else if')
         var data_send_form = [];
         var data_send_inputs = [];
         data_send_form['url'] = data_array['resultData']['paymentForm']['action'];
@@ -37,12 +46,11 @@ var selpayIK = {
         jQuery('#tempformIK').submit();
       }
       else {
-        console.log('paystart else else')
         if (document.getElementById('tempdivIK') == null)
-          jQuery('form[action="https://sci.interkassa.com/"]').after('<div id="tempdivIK">' + data_array['resultData']['internalForm'] + '</div>');
+          jQuery(selpayIK.Form).after('<div id="tempdivIK">' + data_array['resultData']['internalForm'] + '</div>');
         else
           jQuery('#tempdivIK').html(data_array['resultData']['internalForm']);
-        document.querySelector('form[action="https://sci.interkassa.com/"]').action=location.origin+'/modules/interkassa/validation.php';
+        document.querySelector(selpayIK.Form).action=location.origin+'/modules/interkassa/validation.php';
         document.querySelector('.ps-shown-by-js button').innerText='Нажмите для продолжения после оплаты';
         jQuery('#internalForm').attr('action', 'javascript:selpayIK.selPaysys2()')
       }
@@ -65,17 +73,13 @@ var selpayIK = {
   },
   paystart2 : function(string){
     data_array = (this.IsJsonString(data))? JSON.parse(data) : data;
-    console.log(data_array);
     var form2 = jQuery('#internalForm');
     if (data_array['resultCode'] != 0) {
       form2[0].action = selpayIK.actForm;
-      jQuery('input[name="ik_act"]').remove();
-      jQuery('input[name="ik_int"]').remove();
-      jQuery('input[name="sci[ik_int]"]').remove();
+      selpayIK.backup.b(['ik_act','ik_int','sci[ik_int]']);
       setTimeout(function(){form2[0].submit()},200)
     }
     else {
-      console.log('paystart2 else')
       jQuery('#tempdivIK').html('');
       if (data_array['resultData']['paymentForm'] != undefined) {
         var data_send_form = [];
@@ -91,10 +95,7 @@ var selpayIK = {
         }
         jQuery('#tempformIK2').submit();
       }
-      else {
-        console.log('paystart2 else else')
-        jQuery('#tempdivIK').append(data_array['resultData']['internalForm']);
-      }
+      else jQuery('#tempdivIK').append(data_array['resultData']['internalForm']);
     }
   },
   IsJsonString : function(str) {
@@ -110,7 +111,6 @@ jQuery(document).ready(function(){
   jQuery('body').prepend('<div class="blLoaderIK"><div class="loaderIK"></div></div>');
   jQuery('.ik_modal').on('show.bs.modal',function(event){jQuery(this).toggleClass('in');jQuery('body').toggleClass('modal-open')});
   jQuery('.ik_modal').on('hide.bs.modal',function(event){jQuery('body').toggleClass('modal-open')})
-  var checkSelCurrPS = [];var form=jQuery('form[action="https://sci.interkassa.com/"]');
 
 	jQuery('.ik-payment-confirmation').click(function(e){
 		e.preventDefault();
@@ -122,17 +122,11 @@ jQuery(document).ready(function(){
 			return;
 		} else {
       if(ik_pw_via.search('test_interkassa|qiwi|rbk')==-1){
-        var el = document.createElement('input');
-        el.type='hidden',el.name='ik_act',el.value='process';
-        document.querySelector('form[action="https://sci.interkassa.com/"]').appendChild(el);
-        var el2 = document.createElement('input');
-        el2.type='hidden',el2.name='ik_int',el2.value='json';
-        document.querySelector('form[action="https://sci.interkassa.com/"]').appendChild(el2);
+        selpayIK.backup.c([['ik_act','process'],['ik_int',['json']]])
         jQuery('.blLoaderIK').css('display', 'block');
-        jQuery.post(selpayIK.req_uri, jQuery('form[action="https://sci.interkassa.com/"]').serialize(), function (data) {
+        jQuery.post(selpayIK.req_uri,selpayIK.serialize(), function (data) {
           var a = JSON.parse(data)
-          console.log(a)
-          jQuery('input[name="ik_sign"]').val(a.sign);
+          selpayIK.backup.a('ik_sign',a.sign);
           selpayIK.paystart(a);
           })
           .fail(function () {
@@ -142,9 +136,7 @@ jQuery(document).ready(function(){
             jQuery('.blLoaderIK').css('display', 'none');
         })
       }
-      else {
-        jQuery('form[action="https://sci.interkassa.com/"]').attr('action', selpayIK.actForm).submit()
-      }
+      else selpayIK.backup.f()
 		}
     jQuery('#InterkassaModal').modal('hide')
 	});
@@ -157,22 +149,13 @@ jQuery(document).ready(function(){
     jQuery('a[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('notActive').addClass('active');
 
     var ik_pw_via = jQuery(this).attr('data-title');
-    if (jQuery('input[name ="ik_pw_via"]').length > 0){
-      jQuery('input[name ="ik_pw_via"]').val(ik_pw_via);
-    }
-    else{
-      jQuery('form[action="https://sci.interkassa.com/"]').append(jQuery('<input>', {type: 'hidden', name: 'ik_pw_via', val: ik_pw_via}));
-    }
-    jQuery.post(selpayIK.req_uri, jQuery('form[action="https://sci.interkassa.com/"]').serialize())
+    selpayIK.backup.a('ik_pw_via',ik_pw_via)
+
+    jQuery.post(selpayIK.req_uri,selpayIK.serialize())
       .always(function (data, status) {
         jQuery('.blLoaderIK').css('display', 'none');
-        if(status == 'success'){
-          var a = JSON.parse(data)
-          console.log(a)
-          jQuery('input[name="ik_sign"]').val(a.sign);
-        }
-        else
-          alert('Something wrong');
+        if(status=='success') selpayIK.backup.a('ik_sign',JSON.parse(data).sign);
+        else alert('Something wrong');
       })
   })
 });
