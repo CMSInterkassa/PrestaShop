@@ -7,7 +7,8 @@ if(!empty($_POST)){
   {
     $sign = Interkassa::IkSignFormation($_POST);
     $_POST['ik_sign'] = $sign;
-    echo json_encode(Interkassa::getAnswerFromAPI($_POST));
+    $return = Interkassa::getAnswerFromAPI($_POST);
   }
-  else echo json_encode(array('sign'=>Interkassa::IkSignFormation($_POST)));
+  else $return = array('sign'=>Interkassa::IkSignFormation($_POST));
+  echo json_encode($return);
 }
