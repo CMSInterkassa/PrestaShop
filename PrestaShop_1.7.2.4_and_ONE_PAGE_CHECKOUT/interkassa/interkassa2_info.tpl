@@ -2,7 +2,6 @@
     <p>{l s='Interkassa' mod='interkassa'}</p>
 </section>
 {if $api_mode == 'on'}
-	{if $payment_systems|is_array}
 <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#InterkassaModal">{l s='Select Payment System' mod='interkassa'}</button>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="{$ik_dir}assets/ik.js"></script>
@@ -60,11 +59,4 @@
         </div>
     </div>
 </div>
-	{else}
-	<p><strong style="color:red;">{$payment_systems|unescape:"htmlall"}</strong></p>
-	{/if}
-{/if}
-{if $api_mode != 'on'}
-<script src="{$ik_dir}assets/ik_no_api.js"></script>
-<button type="button" class="btn btn-info btn-lg" onclick="gogogo()">Перейти к оплате</button>
 {/if}

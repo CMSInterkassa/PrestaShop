@@ -124,7 +124,7 @@ class Interkassa extends PaymentModule
             </p>
         <form action="' . $_SERVER['REQUEST_URI'] . '" method="post">
           <fieldset>
-          <legend><img width="20px" src="' . __PS_BASE_URI__ . 'modules/interkassa/logo.gif" />' . $this->l('Settings') . '</legend>
+          <legend><img width="20px" src="' . __PS_BASE_URI__ . 'modules/interkassa2/logo.gif" />' . $this->l('Settings') . '</legend>
             <p>' . $this->l('Use the test mode to go directly to the test payment system, without the possibility of choice of other payment systems') . '
             </p>
             <label>
@@ -338,8 +338,18 @@ class Interkassa extends PaymentModule
 
 
         $externalOption = new PaymentOption();
-        $externalOption->setCallToActionText($this->l('Pay with Interkassa'))
-            ->setAction('https://sci.interkassa.com/')
+        $externalOption->setCallToActionText($this->l('Оплатить через Интеркассу'))
+            ->setAction('https://sci.interkassa.com/?ik_co_id='.Configuration::get('INTERKASSA_CO_ID').
+              '&ik_pm_no='.$cart->id.
+              '&ik_desc='.urlencode('#'.$cart->id).
+              '&ik_am='.urlencode(number_format(sprintf("%01.2f", $total), 2, '.', '')).
+              '&ik_cur='.urlencode($currency->iso_code).
+              '&ik_suc_u='.urlencode(Tools::getHttpHost(true).__PS_BASE_URI__.'modules/interkassa/validation.php').
+              '&ik_fal_u='.urlencode(Tools::getHttpHost(true).__PS_BASE_URI__.'modules/interkassa/fail.php').
+              '&ik_pnd_u='.urlencode(Tools::getHttpHost(true).__PS_BASE_URI__.'modules/interkassa/fail.php').
+              '&ik_ia_u='.urlencode(Tools::getHttpHost(true).__PS_BASE_URI__.'modules/interkassa/validation.php').
+              '&ik_sign='.urlencode($signature)
+            )
             ->setInputs($form)
             ->setAdditionalInformation($this->context->smarty->assign(array(
               'ik_co_id'=>Configuration::get('INTERKASSA_CO_ID'),
@@ -358,13 +368,8 @@ class Interkassa extends PaymentModule
                 'ajax_url'=> Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/interkassa/ajax.php',
                 'ik_dir'=> Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/interkassa/',
                 'shop_cur'=>$currency->iso_code
-            
-            ))->fetch('module:interkassa/interkassa2_info.tpl'));
-//            ->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/payment.png'));
-
-//            ))->fetch('module:interkassa/interkassa2_info.tpl'))
-//            ->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/payment.png'));
-        
+            ))->fetch('module:interkassa/interkassa2_info.tpl'))
+            ->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/payment.png'));
         return $externalOption;
     }
 
@@ -427,37 +432,24 @@ class Interkassa extends PaymentModule
       );
 
       $context = stream_context_create($opts);
-      $response = file_get_contents($remote_url, false, $context);
-      $json_data=json_decode($response);
+      $file = file_get_contents($remote_url, false, $context);
+      $json_data=json_decode($file);
 
-	  
-		if(empty($response))
-			return 'Error!!! System response empty!';
-		
-		if ($json_data->status != 'error') {
-			$payment_systems = array();
-			if (!empty($json_data->data)){
-				foreach ($json_data->data as $ps => $info){
-					$payment_system = $info->ser;
-					if(!array_key_exists($payment_system,$payment_systems)){
-						$payment_systems[$payment_system] = array();
-						foreach ($info->name as $name){
-						//ВЫБРАЛИ ТОЛЬКО АНГЛИЙСКИЙ ПЕРЕВОД ТАК КАК ОН ЕСТЬ У ВСЕХ МЕТОДОВ
-							if($name->l == 'en'){
-								$payment_systems[$payment_system]['title'] = ucfirst($name->v);
-							}
-							$payment_systems[$payment_system]['name'][$name->l] = $name->v;
-						}
-					}
-					$payment_systems[$payment_system]['currency'][strtoupper($info->curAls)] = $info->als;
-				}
-			}
-			return !empty($payment_systems)? $payment_systems : '<strong style="color:red;">API connection error or system response empty!</strong>';
-		} else {
-				if(!empty($json_data->message))
-					return 'API connection error!' . "\n" . $json_data->message;
-				else
-					return 'API connection error or system response empty!';
-		}
+      $payment_systems = array();
+      foreach ($json_data->data as $ps => $info){
+        $payment_system = $info->ser;
+        if(!array_key_exists($payment_system,$payment_systems)){
+          $payment_systems[$payment_system] = array();
+          foreach ($info->name as $name){
+            //ВЫБРАЛИ ТОЛЬКО АНГЛИЙСКИЙ ПЕРЕВОД ТАК КАК ОН ЕСТЬ У ВСЕХ МЕТОДОВ
+            if($name->l == 'en'){
+              $payment_systems[$payment_system]['title'] = ucfirst($name->v);
+            }
+            $payment_systems[$payment_system]['name'][$name->l] = $name->v;
+          }
+        }
+        $payment_systems[$payment_system]['currency'][strtoupper($info->curAls)] = $info->als;
+      }
+      return $payment_systems;
     }
 }
