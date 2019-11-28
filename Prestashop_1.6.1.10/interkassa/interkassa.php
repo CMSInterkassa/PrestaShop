@@ -41,6 +41,9 @@ class Interkassa extends PaymentModule
         if (isset($config['test_key'])) {
             $this->t_key = $config['test_key'];
         }
+        if(isset($config['test_key'])){
+            $this->test_mode = $config['test_mode'];
+        }
         if (isset($config['api_mode'])) {
             $this->api_mode = $config['api_mode'];
         }
@@ -82,6 +85,15 @@ class Interkassa extends PaymentModule
         if (!parent::install()
             OR !$this->registerHook('payment')
             OR !$this->registerHook('paymentReturn')
+            OR !Configuration::updateValue('INTERKASSA2_CO_ID', '')
+            OR !Configuration::updateValue('INTERKASSA2_S_KEY', '')
+            OR !Configuration::updateValue('INTERKASSA2_T_KEY', '')
+            OR !Configuration::updateValue('INTERKASSA2_TEST_MODE', 'test')
+            OR !Configuration::updateValue('INTERKASSA2_PAY_TEXT', 'Pay with Interkassa')
+            OR !Configuration::updateValue('INTERKASSA2_API_MODE', 'off')
+            OR !Configuration::updateValue('INTERKASSA2_API_ID', '')
+            OR !Configuration::updateValue('INTERKASSA2_API_KEY', '')
+            OR !Configuration::updateValue('INTERKASSA_PENDING',$ikStatePending->id)
             OR !Configuration::updateValue('INTERKASSA_PAID',$ikStatePaid->id)
         )
             return false;
@@ -94,6 +106,7 @@ class Interkassa extends PaymentModule
             OR !Configuration::deleteByName('secret_key')
             OR !Configuration::deleteByName('test_key')
             OR !Configuration::deleteByName('api_mode')
+            OR !Configuration::deleteByName('INTERKASSA2_TEST_MODE')
             OR !Configuration::deleteByName('api_id')
             OR !Configuration::deleteByName('api_key')
             OR !Configuration::deleteByName('INTERKASSA_PAID')
@@ -150,10 +163,27 @@ class Interkassa extends PaymentModule
 
     private function _displayForm()
     {
-        $this->_html .=
-            '<form action="' . $_SERVER['REQUEST_URI'] . '" method="post" class="defaultForm form-horizontal bootstrap">
-        <fieldset>
-            <legend><img src="../img/admin/contact.gif" />' . $this->l('Settings') . '</legend>
+         if ($ik_test_mode = Tools::getValue('ik_test_mode')) Configuration::updateValue('INTERKASSA2_TEST_MODE', $ik_test_mode);
+        $this->_html .='
+     <form action="' . $_SERVER['REQUEST_URI'] . '" method="post">
+          <fieldset>
+          <legend><img width="20px" src="' . __PS_BASE_URI__ . 'modules/interkassa2/logo.gif" />' . $this->l('Settings') . '</legend>
+            <p>' . $this->l('Use the test mode to go directly to the test payment system, without the possibility of choice of other payment systems') . '
+            </p>
+            <label>
+              ' . $this->l('Mode') . '
+            </label>
+            <div class="margin-form" style="width:110px;">
+              <select name="ik_test_mode">
+                <option value="live"' . (Configuration::get('INTERKASSA2_TEST_MODE') == 'live' ? ' selected="selected"' : '') . '>' . $this->l('Work mode')
+            . '&nbsp;&nbsp;
+                </option>
+                <option value="test"' . (Configuration::get('INTERKASSA2_TEST_MODE') == 'test' ? ' selected="selected"' : '') . '>' . $this->l('Test mode')
+            . '&nbsp;
+                &nbsp;
+                </option>
+              </select>
+            </div>
             <div><label>' . $this->l('ik_shop_id:') . '</label>
                 <div class="margin-form"><input type="text" size="33" maxlength="36" name="ik_co_id" value="' . htmlentities(Tools::getValue('ik_co_id', $this->ik_co_id), ENT_COMPAT, 'UTF-8') . '" />
                     <p>'.$this->l('No more than').'</p></div>
@@ -252,6 +282,7 @@ class Interkassa extends PaymentModule
         $secret_key = Configuration::get('secret_key');
 
         $protocol = isset($_SERVER["HTTPS"]) ? 'https://' : 'http://';
+        
 
         $parameters = array(
             'ik_cur' => $cur,
@@ -265,6 +296,11 @@ class Interkassa extends PaymentModule
             'ik_pnd_u' => $protocol . htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8') . __PS_BASE_URI__ . 'modules/interkassa/success.php',
         );
 
+
+        if (Configuration::get('INTERKASSA2_TEST_MODE') == 'test') {
+            $parameters['ik_pw_via'] = 'test_interkassa_test_xts';
+        }
+        
         $signature = self::IkSignFormation($arg);
 
         $parameters['ik_sign'] = $signature;
@@ -280,6 +316,9 @@ class Interkassa extends PaymentModule
         }else{
             $parameters['api_mode'] = false;
         }
+        
+        
+        
         $smarty->assign($parameters);
 
         return $this->display(__FILE__, 'interkassa.tpl');
@@ -288,39 +327,95 @@ class Interkassa extends PaymentModule
         $username = $ik_api_id;
         $password = $ik_api_key;
         $remote_url = 'https://api.interkassa.com/v1/paysystem-input-payway?checkoutId='.$ik_co_id;
+        
+        $businessAcc = $this->getIkBusinessAcc($username, $password);
+            
+        $ikHeaders = [];
+        $ikHeaders[] = "Authorization: Basic " . base64_encode("$username:$password");
+        if (!empty($businessAcc)) {
+            $ikHeaders[] = "Ik-Api-Account-Id: " . $businessAcc;
+        }
+                
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $remote_url);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $ikHeaders);
+        $response = curl_exec($ch);
+               
+        $json_data = json_decode($response);
+        if (empty($json_data))
+            return '<strong style="color:red;">Error!!! System response empty!</strong>';
 
-        $opts = array(
-            'http'=>array(
-                'method'=>"GET",
-                'header' => "Authorization: Basic " . base64_encode("$username:$password")
-            )
-        );
-
-        $context = stream_context_create($opts);
-        $file = file_get_contents($remote_url, false, $context);
-        $json_data=json_decode($file);
-        $payment_systems = array();
-        if($json_data->status != 'error'){
-        foreach ($json_data->data as $ps => $info){
-            $payment_system = $info->ser;
-            if(!array_key_exists($payment_system,$payment_systems)){
-                $payment_systems[$payment_system] = array();
-                foreach ($info->name as $name){
-                    //ВЫБРАЛИ ТОЛЬКО АНГЛИЙСКИЙ ПЕРЕВОД ТАК КАК ОН ЕСТЬ У ВСЕХ МЕТОДОВ
-                    if($name->l == 'en'){
-                        $payment_systems[$payment_system]['title'] = ucfirst($name->v);
+            if ($json_data->status != 'error') {
+                $payment_systems = array();
+                if (!empty($json_data->data)) {
+                    
+                    foreach ($json_data->data as $ps => $info) {
+                        $payment_system = $info->ser;
+                        if (!array_key_exists($payment_system, $payment_systems)) {
+                            $payment_systems[$payment_system] = array();
+                            foreach ($info->name as $name) {
+                                if ($name->l == 'en') {
+                                    $payment_systems[$payment_system]['title'] = ucfirst($name->v);
+                                }
+                                $payment_systems[$payment_system]['name'][$name->l] = $name->v;
+                            }
+                        }
+                        $payment_systems[$payment_system]['currency'][strtoupper($info->curAls)] = $info->als;
                     }
-                    $payment_systems[$payment_system]['name'][$name->l] = $name->v;
                 }
+                return !empty($payment_systems) ? $payment_systems : '<strong style="color:red;">API connection error or system response empty!</strong>';
+            } else {
+                if (!empty($json_data->message))
+                    return '<strong style="color:red;">API connection error!<br>' . $json_data->message . '</strong>';
+                else
+                    return '<strong style="color:red;">API connection error or system response empty!</strong>';
             }
-            $payment_systems[$payment_system]['currency'][strtoupper($info->curAls)] = $info->als;
         }
-        }else{
-            $payment_systems['error'] ='API connection error! '.$json_data->message;
-        }
-        return $payment_systems;
+        
+    public function getIkBusinessAcc($username = '', $password = '')         {
+            $tmpLocationFile = __DIR__ . '/tmpLocalStorageBusinessAcc.ini';
+            $dataBusinessAcc = function_exists('file_get_contents') ? file_get_contents($tmpLocationFile) : '{}';
+            $dataBusinessAcc = json_decode($dataBusinessAcc, 1);
+            $businessAcc = is_string($dataBusinessAcc['businessAcc']) ? trim($dataBusinessAcc['businessAcc']) : '';
+            if (empty($businessAcc) || sha1($username . $password) !== $dataBusinessAcc['hash']) {
+                $curl = curl_init();
+                curl_setopt($curl, CURLOPT_URL, 'https://api.interkassa.com/v1/' . 'account');
+                curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($curl, CURLOPT_FOLLOWLOCATION, false);
+                curl_setopt($curl, CURLOPT_HEADER, false);
+                curl_setopt($curl, CURLOPT_HTTPHEADER, ["Authorization: Basic " . base64_encode("$username:$password")]);
+                $response = curl_exec($curl);
+                $response = json_decode($response,1);
 
+
+                if (!empty($response['data'])) {
+                    foreach ($response['data'] as $id => $data) {
+                        if ($data['tp'] == 'b') {
+                            $businessAcc = $id;
+                            break;
+                        }
+                    }
+                }
+
+                if (function_exists('file_put_contents')) {
+                    $updData = [
+                        'businessAcc' => $businessAcc,
+                        'hash' => sha1($username . $password)
+                    ];
+                    file_put_contents($tmpLocationFile, json_encode($updData, JSON_PRETTY_PRINT));
+                }
+
+                return $businessAcc;
+            }
+
+            return $businessAcc;
     }
+ 
 
     public static function IkSignFormation($data){
 

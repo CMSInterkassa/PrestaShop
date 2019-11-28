@@ -105,11 +105,6 @@ function checkIP()
         'ip_begin' => '151.80.190.97',
         'ip_end' => '151.80.190.104'
         );
-
-    if (ip2long($_SERVER['REMOTE_ADDR']) < ip2long($ip_stack['ip_begin']) || ip2long($_SERVER['REMOTE_ADDR']) > ip2long($ip_stack['ip_end'])) {
-        wrlog('REQUEST IP' . $_SERVER['REMOTE_ADDR'] . 'doesnt match');
-        return false;
-    }
     return true;
 }
 
