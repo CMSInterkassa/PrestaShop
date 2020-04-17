@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+    <name>interkassa2</name>
+    <displayName><![CDATA[Interkassa2]]></displayName>
+    <version><![CDATA[1.2]]></version>
+    <description><![CDATA[Прием платежей с помощью кредитной карты быстро и безопасно с Интеркасса 2.0.]]></description>
+    <author><![CDATA[GateOn]]></author>
+    <tab><![CDATA[payments_gateways]]></tab>
+	<confirmUninstall><![CDATA[Вы уверенны что хотите удалить все настройки?]]></confirmUninstall>
+    <is_configurable>1</is_configurable>
+    <need_instance>1</need_instance>
+</module>

@@ -51,7 +51,7 @@ if (count($_POST) && checkIP() && isset($_POST['ik_sign'])) {
 
         //wrlog($sign . '/' . $request_sign);
         if ($request_sign == $sign) {
-
+         wrlog('paid2 = ' . Configuration::get('INTERKASSA_PAID'));
             $order = new Order($interkassa->currentOrder);
             if(isset($order->current_state)){
                 $history = new OrderHistory();
@@ -103,11 +103,7 @@ function checkIP()
         'ip_begin' => '151.80.190.97',
         'ip_end' => '151.80.190.104'
     );
-    /*
-    if (!(ip2long($_SERVER['REMOTE_ADDR']) >= ip2long($ip_stack['ip_begin']) && ip2long($_SERVER['REMOTE_ADDR']) <= ip2long($ip_stack['ip_end']))) {
-        wrlog('REQUEST IP' . $_SERVER['REMOTE_ADDR'] . 'doesnt match');
-        die('Ты мошенник! Пшел вон отсюда!');
-    }*/
+
     return true;
 }
 

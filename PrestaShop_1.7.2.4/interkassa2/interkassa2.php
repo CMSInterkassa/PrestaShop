@@ -368,12 +368,13 @@ class Interkassa2 extends PaymentModule
                     new Currency($params['order']->id_currency),
                     false
                 ),
-                'status' => $_POST['ik_inv_st'],
+                'status' => 'success',
                 'reference' => $params['order']->reference,
                 'contact_url' => $this->context->link->getPageLink('contact', true)
             ));
             return $this->fetch('module:interkassa2/interkassa2_notification.tpl');
         }
+
 
     }
 
@@ -395,6 +396,8 @@ class Interkassa2 extends PaymentModule
         $password = $ik_api_key;
         $remote_url = 'https://api.interkassa.com/v1/paysystem-input-payway?checkoutId='.$ik_co_id;
 
+
+
         $businessAcc = $this->getIkBusinessAcc($username, $password);
             
             
@@ -403,7 +406,7 @@ class Interkassa2 extends PaymentModule
             if (!empty($businessAcc)) {
                 $ikHeaders[] = "Ik-Api-Account-Id: " . $businessAcc;
             }
-            
+              
     
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $remote_url);
@@ -445,8 +448,8 @@ class Interkassa2 extends PaymentModule
                     return '<strong style="color:red;">API connection error or system response empty!</strong>';
             }
         }
-        
-        public function getIkBusinessAcc($username = '', $password = ''){
+    
+    public function getIkBusinessAcc($username = '', $password = ''){
             $tmpLocationFile = __DIR__ . '/tmpLocalStorageBusinessAcc.ini';
             $dataBusinessAcc = function_exists('file_get_contents') ? file_get_contents($tmpLocationFile) : '{}';
             $dataBusinessAcc = json_decode($dataBusinessAcc, 1);
@@ -485,4 +488,12 @@ class Interkassa2 extends PaymentModule
 
             return $businessAcc;
         }
+        
+        public function wrlog($text){
+            
+            $tmpLocationFile = __DIR__ . '/log.txt';
+            file_put_contents($tmpLocationFile, $text);
+        }
+    
 }
+

@@ -8,9 +8,8 @@
  */
 
 include(dirname(__FILE__) . '/../../config/config.inc.php');
-include(dirname(__FILE__) . '/interkassa.php');
-$interkassa = new Interkassa();
-
+include(dirname(__FILE__) . '/interkassa2.php');
+$interkassa = new Interkassa2();
 
 if(isset($_POST['ik_pm_no'])){
     $cart = new Cart((int)$_POST['ik_pm_no']);
@@ -23,5 +22,11 @@ if(isset($_POST['ik_pm_no'])){
     }
 
     $order = new Order($interkassa->currentOrder);
+    
     Tools::redirectLink(__PS_BASE_URI__ . 'history');
+
 }
+
+
+
+
