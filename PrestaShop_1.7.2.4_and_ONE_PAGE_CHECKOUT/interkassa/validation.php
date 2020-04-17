@@ -17,8 +17,16 @@ if(!Validate::isLoadedObject($customer))Tools::redirect('index.php?controller=or
 $currency = $context->currency;
 $total = (float)($cart->getOrderTotal(true, Cart::BOTH));
 
+/////////////// наверно нехватает данных для подтверждения - нужно вкл в ЛК Интрекассы /////
+//if($_POST['ik_pw_via'] == 'test_interkassa_test_xts')
+//    $key = 0;
+//else
+//    $key = 1;
+//if(Configuration::get('INTERKASSA_CO_ID') == $_POST['ik_co_id'] && $interkassa::IkSignFormation($_POST, $key) == $_POST['ik_sign']){
+
 if(Configuration::get('INTERKASSA_CO_ID') == $_POST['ik_co_id']){
-$interkassa->validateOrder($cart->id,Configuration::get('PS_OS_BANKWIRE'),$total,$interkassa->displayName,NULL,array(),(int)$currency->id,false,$customer->secure_key);
-$order = new Order($interkassa->currentOrder);
-Tools::redirect('index.php?controller=order-confirmation&id_cart='.$cart->id.'&id_module='.$interkassa->id.'&id_order='.$interkassa->currentOrder.'&key='.$customer->secure_key);
-}else Tools::redirect('index.php?controller=order&step=4');
+    $interkassa->validateOrder($cart->id, Configuration::get('INTERKASSA_PAID'), $total, $interkassa->displayName, NULL, [], (int)$currency->id, false, $customer->secure_key);
+    Tools::redirect('index.php?controller=order-confirmation&id_cart='.$cart->id.'&id_module='.$interkassa->id.'&id_order='.$interkassa->currentOrder.'&key='.$customer->secure_key);
+} else {
+    Tools::redirect('index.php?controller=order&step=4');
+}
