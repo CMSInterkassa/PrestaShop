@@ -4,7 +4,7 @@
  * @description Модуль разработан в компании GateOn предназначен для CMS Prestashop 1.7.0.x
  * @author www.gateon.net
  * @email www@smartbyte.pro
- * @last_update 13.01.2017
+ * @last_update 30.08.2017
  * @version 1.2
  */
 
@@ -341,7 +341,6 @@ class Interkassa2 extends PaymentModule
                 Configuration::get('INTERKASSA2_API_KEY'));
         }
 
-
         $externalOption = new PaymentOption();
         $externalOption->setCallToActionText($this->l(Configuration::get('INTERKASSA2_PAY_TEXT')))
             ->setAction('https://sci.interkassa.com/')
@@ -350,6 +349,7 @@ class Interkassa2 extends PaymentModule
                 'api_mode'=>Configuration::get('INTERKASSA2_API_MODE'),
                 'payment_systems'=>$payment_systems,
                 'ajax_url'=> Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/interkassa2/ajax.php',
+                'ajax_url2'=> Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/interkassa2/ajax2.php',
                 'ik_dir'=> Tools::getHttpHost(true) . __PS_BASE_URI__ . 'modules/interkassa2/',
                 'shop_cur'=>$currency->iso_code
             ))->fetch('module:interkassa2/interkassa2_info.tpl'))
